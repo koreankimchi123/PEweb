@@ -16,6 +16,13 @@ pose.setOptions({
 
 pose.onResults(onResults);
 
+// WebAssembly 백엔드 설정
+tf.setBackend('wasm').then(() => {
+    console.log("WebAssembly 백엔드로 전환되었습니다.");
+    main();  // WebAssembly 설정 후 main 실행
+});
+
+
 function getBoundingBox(landmarks) {
     const xValues = landmarks.map(landmark => landmark.x);
     const yValues = landmarks.map(landmark => landmark.y);
