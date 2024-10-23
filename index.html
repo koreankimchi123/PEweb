@@ -4,25 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-time 3D Pose Estimation</title>
-    <style>
-      #video {
-        display: block;
-      }
-
-      /* 모바일 화면일 때 비디오 숨기기 */
-      @media (max-width: 768px) {
-        #video {
-          display: none;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Real-time 3D Pose Estimation</h1>
-    <video id="video" width="640" height="480" autoplay muted></video>
-    <canvas id="output" width="640" height="480"></canvas>
+    <video id="video" autoplay muted></video>
+    <canvas id="output"></canvas>
+    
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
