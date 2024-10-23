@@ -79,20 +79,23 @@ function onResults(results) {
 
 // Setup webcam and stream video to the element
 async function setupCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      width: 640,
-      height: 480
-    }
-  });
-  videoElement.srcObject = stream;
+    const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+            width: 640,
+            height: 480
+        }
+    });
+    videoElement.srcObject = stream;
 
-  return new Promise((resolve) => {
-    videoElement.onloadedmetadata = () => {
-      resolve(videoElement);
-    };
-  });
+    return new Promise((resolve) => {
+        videoElement.onloadedmetadata = () => {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            resolve(videoElement);
+        };
+    });
 }
+
 
 // Main function to initialize camera and pose detection
 async function main() {

@@ -13,22 +13,25 @@ h1 {
     margin-bottom: 20px;
 }
 
+/* Container for video and canvas */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Space between video and canvas */
+}
+
 video, canvas {
     display: block;
     width: 100%;
     max-width: 640px;
     height: auto;
     border: 1px solid #ddd;
-    margin-bottom: 20px;
-}
-
-canvas {
-    background-color: #000;
 }
 
 /* Adjustments for mobile devices */
 @media (max-width: 768px) {
-    video, canvas {
-        max-width: 100%;
+    .container {
+        flex-direction: column;
     }
 }
