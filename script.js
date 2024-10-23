@@ -1,82 +1,91 @@
-const video = document.getElementById('video');
-const canvas = document.getElementById('output');
-const ctx = canvas.getContext('2d');
+const videoElement = document.getElementById('video');
+const canvasElement = document.getElementById('output');
+const canvasCtx = canvasElement.getContext('2d');
 
-// PoseNet에서 제공하는 연결 정보
-const adjacentKeyPoints = posenet.getAdjacentKeyPoints;
+const pose = new Pose({
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+});
+
+pose.setOptions({
+  modelComplexity: 1, 
+  smoothLandmarks: true,
+  enableSegmentation: false, 
+  minDetectionConfidence: 0.6,
+  minTrackingConfidence: 0.5
+});
+
+pose.onResults(onResults);
+
+function getBoundingBox(landmarks) {
+    const xValues = landmarks.map(landmark => landmark.x);
+    const yValues = landmarks.map(landmark => landmark.y);
+  
+    const minX = Math.min(...xValues);
+    const minY = Math.min(...yValues);
+    const maxX = Math.max(...xValues);
+    const maxY = Math.max(...yValues);
+  
+    return { minX, minY, maxX, maxY };
+  }
+  
+  function drawBoundingBox(ctx, boundingBox) {
+    ctx.beginPath();
+    ctx.rect(
+      boundingBox.minX * canvasElement.width,  // X 좌표는 전체 캔버스 크기에 맞춰서 계산
+      boundingBox.minY * canvasElement.height, // Y 좌표도 동일
+      (boundingBox.maxX - boundingBox.minX) * canvasElement.width, // 경계 상자의 너비
+      (boundingBox.maxY - boundingBox.minY) * canvasElement.height // 경계 상자의 높이
+    );
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'red';
+    ctx.stroke();
+  }  
 
 async function setupCamera() {
     const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
     });
-    video.srcObject = stream;
+    videoElement.srcObject = stream;
 
     return new Promise((resolve) => {
-        video.onloadedmetadata = () => {
-            resolve(video);
+        videoElement.onloadedmetadata = () => {
+            resolve(videoElement);
         };
     });
 }
 
-async function loadPosenet() {
-    const net = await posenet.load();
-    return net;
-}
+function onResults(results) {
+    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+  
+    if (results.poseLandmarks) {
+      results.poseLandmarks.forEach((landmark) => {
+        console.log(`X: ${landmark.x}, Y: ${landmark.y}, Z: ${landmark.z}`);
+      });
+    // Bounding Box 계산
+    const boundingBox = getBoundingBox(results.poseLandmarks);
 
-async function detectPose(net) {
-    const pose = await net.estimateSinglePose(video, {
-        flipHorizontal: false,
-    });
-    return pose;
-}
+    // Bounding Box 그리기
+    drawBoundingBox(canvasCtx, boundingBox);
 
-function drawKeypoints(keypoints, minConfidence, ctx) {
-    keypoints.forEach(point => {
-        if (point.score > minConfidence) {
-            const { y, x } = point.position;
-            ctx.beginPath();
-            ctx.arc(x, y, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = 'aqua';
-            ctx.fill();
-        }
-    });
-}
-
-function drawSkeleton(keypoints, minConfidence, ctx) {
-    const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, minConfidence);
-
-    adjacentKeyPoints.forEach((keypoints) => {
-        const startPoint = keypoints[0].position;
-        const endPoint = keypoints[1].position;
-
-        ctx.beginPath();
-        ctx.moveTo(startPoint.x, startPoint.y);
-        ctx.lineTo(endPoint.x, endPoint.y);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'red';
-        ctx.stroke();
-    });
-}
+    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: 'white', lineWidth: 4});
+    drawLandmarks(canvasCtx, results.poseLandmarks, {color: 'aqua', lineWidth: 2});
+    }
+  }
+  
 
 async function main() {
     await setupCamera();
-    video.play();
+    videoElement.play();
 
-    const net = await loadPosenet();
-
-    async function poseDetectionFrame() {
-        const pose = await detectPose(net);
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        drawKeypoints(pose.keypoints, 0.5, ctx);
-        drawSkeleton(pose.keypoints, 0.5, ctx);
-
-        requestAnimationFrame(poseDetectionFrame);
-    }
-
-    poseDetectionFrame();
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await pose.send({image: videoElement});
+      },
+      width: 640,
+      height: 480
+    });
+    camera.start();
 }
 
 main();
