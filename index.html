@@ -9,8 +9,10 @@
 <body>
     <h1>Real-time 3D Pose Estimation</h1>
     <div class="container">
-        <video id="video" autoplay muted></video>
         <canvas id="output"></canvas>
+        <video style="width:0; height:0" id="video" autoplay playsinline muted></video>
+        <!-- <button id="startButton">카메라 시작</button> -->
+
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>

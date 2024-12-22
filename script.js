@@ -18,10 +18,14 @@ pose.setOptions({
 pose.onResults(onResults);
 
 // WebAssembly backend setup for TensorFlow.js
-tf.setBackend('wasm').then(() => {
-  console.log("Switched to WebAssembly backend.");
-  main();  // Start the main execution after backend is set
+// document.getElementById('startButton').addEventListener('click', () => {
+// });
+tf.setBackend('webgl').then(() => {
+  console.log("WebGL 백엔드로 전환되었습니다.");
+  main();  // 백엔드 설정 후 메인 실행 시작
 });
+
+
 
 // Calculate bounding box from pose landmarks
 function getBoundingBox(landmarks) {
@@ -79,21 +83,21 @@ function onResults(results) {
 
 // Setup webcam and stream video to the element
 async function setupCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-            width: 640,
-            height: 480
-        }
-    });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     videoElement.srcObject = stream;
 
     return new Promise((resolve) => {
-        videoElement.onloadedmetadata = () => {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            resolve(videoElement);
-        };
+      videoElement.onloadedmetadata = () => {
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+        resolve(videoElement);
+      };
     });
+  } catch (error) {
+    alert("카메라에 접근할 수 없습니다. 브라우저 설정을 확인해주세요.");
+    console.error("카메라 접근 오류:", error);
+  }
 }
 
 
@@ -106,7 +110,7 @@ async function main() {
     onFrame: async () => {
       await pose.send({ image: videoElement });  // Send video frame for pose detection
     },
-    width: 640,
+    width: 540,
     height: 480
   });
   camera.start();
